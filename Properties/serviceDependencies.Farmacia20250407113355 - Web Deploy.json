@@ -1,0 +1,12 @@
+{
+  "dependencies": {
+    "mssql1": {
+      "serviceConnectorResourceId": "/subscriptions/[parameters('subscriptionId')]/resourcegroups/[parameters('resourceGroupName')]/providers/Microsoft.Web/sites/Farmacia20250407113355/providers/Microsoft.ServiceLinker/linkers/ConnectionStringsDBConenction_9F451DD5C5",
+      "secretStore": "AzureAppSettings",
+      "resourceId": "/subscriptions/[parameters('subscriptionId')]/resourcegroups/[parameters('resourceGroupName')]/providers/Microsoft.Sql/servers/farmacia2dbserver/databases/Farmacia_db2",
+      "type": "mssql.azure",
+      "connectionId": "ConnectionStrings:DBConenction",
+      "dynamicId": null
+    }
+  }
+}
