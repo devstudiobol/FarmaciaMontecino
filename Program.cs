@@ -26,28 +26,36 @@ builder.Services.AddCors(options =>
 // ----------------------------
 // DATABASE CONFIGURATION
 // ----------------------------
-
-// Usa la variable de entorno en Render: ConnectionStrings__DefaultConnection
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
 builder.Services.AddDbContext<AppDbContext>(options =>
 	options.UseNpgsql(connectionString, npgsqlOptions =>
 	{
-		// Puedes agregar opciones espec�ficas de Postgres si quieres
 		// npgsqlOptions.EnableRetryOnFailure(maxRetryCount:5, maxRetryDelay: TimeSpan.FromSeconds(30));
 	}));
 
 // ----------------------------
 // JWT Authentication
 // ----------------------------
+var jwtKey = builder.Configuration["Jwt:Key"];
+
+if (string.IsNullOrEmpty(jwtKey))
+{
+	Console.WriteLine("⚠️ WARNING: Jwt:Key not found in configuration. Using default dev key.");
+	jwtKey = "default_dev_key_change_me"; // clave fallback
+}
+else
+{
+	Console.WriteLine("✅ Jwt:Key loaded correctly from configuration.");
+}
+
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 	.AddJwtBearer(options =>
 	{
 		options.TokenValidationParameters = new TokenValidationParameters
 		{
 			ValidateIssuerSigningKey = true,
-			IssuerSigningKey = new SymmetricSecurityKey(
-				Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"])),
+			IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
 			ValidateIssuer = false,
 			ValidateAudience = false
 		};
