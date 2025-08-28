@@ -59,7 +59,7 @@ namespace Farmacia.Controllers
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut]
         [Route("Actualizar")]
-        public async Task<IActionResult> ActualizarCliente(int id, string nombre, string apellido, int telefono, string direccion)
+        public async Task<IActionResult> ActualizarCliente(int id, string nombre, string ci, int telefono, string direccion)
         {
             // Busca la persona por su ID
             var clienteActual = await _context.Clientes.FindAsync(id);
@@ -71,7 +71,7 @@ namespace Farmacia.Controllers
 
             // Actualiza los campos con los nuevos valores
             clienteActual.Nombre = nombre;
-            clienteActual.Apellido = apellido;
+            clienteActual.Ci = ci;
             clienteActual.Telefono = telefono;
             clienteActual.Direccion = direccion;
 
@@ -87,14 +87,14 @@ namespace Farmacia.Controllers
 		[HttpPost("Crear")]
 		public IActionResult CrearCliente(
 		[FromQuery] string nombre,
-		[FromQuery] string apellido,
+		[FromQuery] string ci,
 		[FromQuery] int telefono,
 		[FromQuery] string direccion)
 		{
 			var cliente = new Cliente
 			{
 				Nombre = nombre,
-				Apellido = apellido,
+				Ci = ci,
 				Telefono = telefono,
 				Direccion = direccion,
 				Estado = "Activo"
