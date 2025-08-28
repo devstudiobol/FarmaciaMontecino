@@ -764,3 +764,4 @@ C:\FarmaciaPostgress\Farmacia\Farmacia\obj\Debug\net8.0\scopedcss\bundle\Farmaci
 C:\FarmaciaPostgress\Farmacia\Farmacia\obj\Debug\net8.0\Farmacia.csproj.Up2Date
 C:\FarmaciaPostgress\Farmacia\Farmacia\obj\Debug\net8.0\Farmacia.genruntimeconfig.cache
 C:\FarmaciaPostgress\Farmacia\Farmacia\obj\Debug\net8.0\ref\Farmacia.dll
+C:\FarmaciaPostgress\Farmacia\Farmacia\obj\Debug\net8.0\Farmacia.sourcelink.json
