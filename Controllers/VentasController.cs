@@ -11,17 +11,16 @@ using System.Globalization;
 
 namespace Farmacia.Controllers
 {
-    [Route("api/[controller]")]
-    [ApiController]
-    public class VentasController : ControllerBase
-    {
-        private readonly AppDbContext _context;
+	[Route("api/[controller]")]
+	[ApiController]
+	public class VentasController : ControllerBase
+	{
+		private readonly AppDbContext _context;
 
-        public VentasController(AppDbContext context)
-        {
-            _context = context;
-        }
-
+		public VentasController(AppDbContext context)
+		{
+			_context = context;
+		}
 		[HttpGet("listarVentaDetalleVenta")]
 		public async Task<ActionResult<List<Detalle_Venta>>> listarDetalle_Venta(int idventa)
 		{
@@ -34,10 +33,7 @@ namespace Farmacia.Controllers
 					return NotFound("Venta no encontrada");
 				}
 
-				// Buscar todos los detalles de venta que tengan el
-                //
-                //
-                // mismo idventa
+				// Buscar todos los detalles de venta que tengan el mismo idventa
 				var detalles_Venta = await _context.Detalle_Ventas
 					.Where(d => d.idventa == idventa) // Filtra por idventa
 					.ToListAsync();
@@ -69,14 +65,14 @@ namespace Farmacia.Controllers
 
 			// Consulta para obtener las ventas en el rango de fechas
 			var ventasConDetalles = await _context.Ventas
-				.Where(v => string.Compare(v.Fecha, fechaIni) >= 0 && string.Compare(v.Fecha, fechafin) <= 0 && v.Estado=="Activo" )
+				.Where(v => string.Compare(v.Fecha, fechaIni) >= 0 && string.Compare(v.Fecha, fechafin) <= 0 && v.Estado == "Activo")
 				.Select(v => new
 				{
 					VentaId = v.Id,
 					FechaVenta = v.Fecha,
 					TotalVenta = v.Total,
 					Detalles = _context.Detalle_Ventas
-						.Where(dv => dv.idventa == v.Id && dv.Estado=="Activo")
+						.Where(dv => dv.idventa == v.Id && dv.Estado == "Activo")
 						.Select(dv => new
 						{
 							ProductoId = dv.idproducto,
@@ -97,135 +93,105 @@ namespace Farmacia.Controllers
 			});
 		}
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 		[HttpGet]
-        [Route("ListarVentasActivos")]
-        public async Task<ActionResult<IEnumerable<Venta>>> ListarVentasActivos()
-        {
-            // Filtrar con estado "Activo"
-            var ventasActivos = await _context.Ventas
-    .Where(e => e.Estado == "Activo")
-    .OrderByDescending(e => e.Id) // Ordenar por VentaId de forma descendente
-    .ToListAsync();
+		[Route("ListarVentasActivos")]
+		public async Task<ActionResult<IEnumerable<Venta>>> ListarVentasActivos()
+		{
+			// Filtrar con estado "Activo"
+			var ventasActivos = await _context.Ventas
+				.Where(e => e.Estado == "Activo")
+				.OrderByDescending(e => e.Id) // Ordenar por VentaId de forma descendente
+				.ToListAsync();
 
-            // Retornar la lista de activos
-            return ventasActivos;
-        }
+			// Retornar la lista de activos
+			return ventasActivos;
+		}
 
-        // GET: api/Ventas
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<Venta>>> GetVentas()
-        {
-            return await _context.Ventas.ToListAsync();
-        }
+		// GET: api/Ventas
+		[HttpGet]
+		public async Task<ActionResult<IEnumerable<Venta>>> GetVentas()
+		{
+			return await _context.Ventas.ToListAsync();
+		}
 
-        // GET: api/Ventas/5
-        [HttpGet("{id}")]
-        public async Task<ActionResult<Venta>> GetVenta(int id)
-        {
-            var venta = await _context.Ventas.FindAsync(id);
+		// GET: api/Ventas/5
+		[HttpGet("{id}")]
+		public async Task<ActionResult<Venta>> GetVenta(int id)
+		{
+			var venta = await _context.Ventas.FindAsync(id);
 
-            if (venta == null)
-            {
-                return NotFound();
-            }
+			if (venta == null)
+			{
+				return NotFound();
+			}
 
-            return venta;
-        }
+			return venta;
+		}
 
-        // PUT: api/Ventas/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut]
-        [Route("Actualizar")]
-        public async Task<IActionResult> ActualizarVenta(int id, int total, string fecha)
-        {
-            // Buscar por su ID
-            var ventaActual = await _context.Ventas.FindAsync(id);
+		// PUT: api/Ventas/5
+		// To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+		[HttpPut]
+		[Route("Actualizar")]
+		public async Task<IActionResult> ActualizarVenta(int id, int total, string fecha)
+		{
+			// Buscar por su ID
+			var ventaActual = await _context.Ventas.FindAsync(id);
 
-            if (ventaActual == null)
-            {
-                return NotFound("La venta no fue encontrada.");
-            }
+			if (ventaActual == null)
+			{
+				return NotFound("La venta no fue encontrada.");
+			}
 
-            // Actualiza los campos con los nuevos valores
-            ventaActual.Total = total;
-            ventaActual.Fecha = fecha;
+			// Actualiza los campos con los nuevos valores
+			ventaActual.Total = total;
+			ventaActual.Fecha = fecha;
 
+			// Guarda los cambios en la base de datos
+			await _context.SaveChangesAsync();
 
-            // Guarda los cambios en la base de datos
-            await _context.SaveChangesAsync();
+			return Ok(ventaActual);
+		}
 
-            return Ok(ventaActual);
-        }
+		// POST: api/Permisos
+		// To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+		[HttpPost]
+		[Route("Crear")]
+		public async Task<IActionResult> CrearDetalleVenta(int total, string fecha, int idcliente, int idusuario)
+		{
+			Venta venta = new Venta()
+			{
+				Total = total,
+				Fecha = fecha,
+				idcliente = idcliente,
+				idusuario = idusuario,
+				Estado = "Activo"
+			};
+			await _context.Ventas.AddAsync(venta);
+			await _context.SaveChangesAsync();
+			return Ok(venta);
+		}
 
-        // POST: api/Permisos
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPost]
-        [Route("Crear")]
-        public async Task<IActionResult> CrearDetalleVenta(int total, string fecha, int idcliente, int idusuario)
-        {
-            Venta venta = new Venta()
-            {
-                Total = total,
-                Fecha = fecha,
-                idcliente = idcliente,
-                idusuario = idusuario,
-                Estado = "Activo"
-            };
-            await _context.Ventas.AddAsync(venta);
-            await _context.SaveChangesAsync();
-            return Ok(venta);
-        }
 		[HttpGet("SumarTotalesPorMes")]
-		public async Task<ActionResult<Dictionary<string, int>>> SumarTotalesPorMes()
+		public async Task<ActionResult<Dictionary<string, int>>> SumarTotalesPorMes(int anio)
 		{
 			try
 			{
-				// Obtener todas las ventas activas
+				// Obtener todas las ventas activas del año especificado
 				var ventasActivas = await _context.Ventas
-					.Where(v => v.Estado == "Activo")
+					.Where(v => v.Estado == "Activo" && v.Fecha.StartsWith(anio.ToString()))
 					.ToListAsync();
 
 				// Agrupar las ventas por mes y sumar los totales
-var totalesPorMes = ventasActivas
-    .GroupBy(v => new { Year = v.Fecha.Substring(0, 4), Month = v.Fecha.Substring(5, 2) })
-    .OrderBy(g => g.Key.Year) // Ordenar por año
-    .ThenBy(g => g.Key.Month) // Ordenar por mes
-    .ToDictionary(
-        g => CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(int.Parse(g.Key.Month)), // Clave: Nombre del mes
-        g => g.Sum(v => v.Total) // Valor: Suma de los totales
-    );
+				var totalesPorMes = ventasActivas
+					.GroupBy(v => v.Fecha.Substring(5, 2)) // Agrupar solo por mes
+					.OrderBy(g => g.Key) // Ordenar por mes numérico
+					.ToDictionary(
+						g => CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(int.Parse(g.Key)), // Clave: Nombre del mes
+						g => g.Sum(v => v.Total) // Valor: Suma de los totales
+					);
+
 				// Retornar el diccionario con los totales por mes
-				return Ok(totalesPorMes); // Usar Ok() para devolver un ActionResult
+				return Ok(totalesPorMes);
 			}
 			catch (Exception ex)
 			{
@@ -235,22 +201,53 @@ var totalesPorMes = ventasActivas
 		}
 		// DELETE: api/Permisos/5
 		[HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteVenta(int id)
-        {
-            var venta = await _context.Ventas.FindAsync(id);
+		public async Task<IActionResult> DeleteVenta(int id)
+		{
+			// Iniciar una transacción para asegurar la integridad de los datos
+			using var transaction = await _context.Database.BeginTransactionAsync();
 
-            if (venta == null)
-            {
-                return NotFound("La Venta no fue encontrado.");
-            }
+			try
+			{
+				// Obtener la venta con sus detalles
+				var venta = await _context.Ventas
+					.Include(v => v.Detalle_Venta) // Asegúrate de incluir los detalles
+					.FirstOrDefaultAsync(v => v.Id == id);
 
-            // Cambiar el estado a "Inactivo" en lugar de eliminar
-            venta.Estado = "Inactivo";
+				if (venta == null)
+				{
+					return NotFound("La Venta no fue encontrada.");
+				}
 
-            // Guardar los cambios en la base de datos
-            await _context.SaveChangesAsync();
+				// Actualizar el stock de cada producto en los detalles de venta
+				foreach (var detalle in venta.Detalle_Venta)
+				{
+					var producto = await _context.Productos.FindAsync(detalle.idproducto);
+					if (producto != null)
+					{
+						// Sumar la cantidad del detalle al stock del producto
+						producto.Stock += detalle.Cantidad;
 
-            return Ok(new { message = "La Venta ha sido desactivado." });
-        }
-    }
+						// Opcional: puedes agregar validaciones aquí, como verificar que el stock no sea negativo
+					}
+				}
+
+				// Cambiar el estado a "Inactivo" en lugar de eliminar
+				venta.Estado = "Inactivo";
+
+				// Guardar todos los cambios
+				await _context.SaveChangesAsync();
+
+				// Confirmar la transacción
+				await transaction.CommitAsync();
+
+				return Ok(new { message = "La Venta ha sido desactivada y el stock de productos ha sido actualizado." });
+			}
+			catch (Exception ex)
+			{
+				// Revertir la transacción en caso de error
+				await transaction.RollbackAsync();
+				return StatusCode(500, $"Error interno al procesar la solicitud: {ex.Message}");
+			}
+		}
+	}
 }

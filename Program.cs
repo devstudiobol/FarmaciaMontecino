@@ -16,7 +16,7 @@ builder.Services.AddCors(options =>
 {
 	options.AddPolicy("AllowAll", policyBuilder =>
 	{
-		policyBuilder.WithOrigins("https://wonderful-tree-054da1710.6.azurestaticapps.net")
+		policyBuilder.WithOrigins("http://farmacia.local:3000")
 				   .AllowAnyHeader()
 				   .AllowAnyMethod()
 				   .AllowCredentials();
@@ -42,11 +42,14 @@ var jwtKey = builder.Configuration["Jwt:Key"];
 if (string.IsNullOrEmpty(jwtKey))
 {
 	Console.WriteLine("?? WARNING: Jwt:Key not found in configuration. Using default dev key.");
+
 	jwtKey = "default_dev_key_change_me"; // clave fallback
 }
 else
 {
-	Console.WriteLine("? Jwt:Key loaded correctly from configuration.");
+
+	Console.WriteLine("✅ Jwt:Key loaded correctly from configuration.");
+
 }
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)

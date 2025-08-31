@@ -10,16 +10,16 @@ using Farmacia.Models;
 
 namespace Farmacia.Controllers
 {
-    [Route("api/[controller]")]
-    [ApiController]
-    public class Detalle_VentasController : ControllerBase
-    {
-        private readonly AppDbContext _context;
+	[Route("api/[controller]")]
+	[ApiController]
+	public class Detalle_VentasController : ControllerBase
+	{
+		private readonly AppDbContext _context;
 
-        public Detalle_VentasController(AppDbContext context)
-        {
-            _context = context;
-        }
+		public Detalle_VentasController(AppDbContext context)
+		{
+			_context = context;
+		}
 
 		[HttpGet]
 		[Route("ProductosMasVendidos")]
@@ -27,7 +27,7 @@ namespace Farmacia.Controllers
 		{
 			// Agrupar las ventas por idproducto y sumar las cantidades vendidas
 			var productosVendidos = await _context.Detalle_Ventas
-				.Where(dv=>dv.Estado=="Activo")
+				.Where(dv => dv.Estado == "Activo")
 				.GroupBy(dv => dv.idproducto)
 				.Select(g => new
 				{
@@ -42,10 +42,24 @@ namespace Farmacia.Controllers
 				return NotFound("No se encontraron ventas.");
 			}
 
-			// Obtener la información completa de los productos
+			// Obtener la información completa de los productos con presentación y laboratorio
 			var productosIds = productosVendidos.Select(p => p.ProductoId).ToList();
 			var productos = await _context.Productos
-				.Where(p => productosIds.Contains(p.Id)&& p.Estado == "Activo")
+				.Where(p => productosIds.Contains(p.Id) && p.Estado == "Activo")
+				.Join(_context.Presentaciones,
+					producto => producto.idpresentacion,
+					presentacion => presentacion.Id,
+					(producto, presentacion) => new
+					{
+						producto.Id,
+						producto.Nombre,
+						producto.idlaboratorio, // Ajusta según el nombre de tu campo
+						PresentacionNombre = presentacion.Nombre,
+						LaboratorioNombre = _context.Laboratorios
+							.Where(l => l.Id == producto.idlaboratorio) // Ajusta según el nombre de tu campo
+							.Select(l => l.LaboratorioNombre)
+							.FirstOrDefault() ?? "Sin laboratorio"
+					})
 				.ToListAsync();
 
 			// Combinar la información de los productos con las cantidades vendidas
@@ -57,75 +71,76 @@ namespace Farmacia.Controllers
 					  {
 						  ProductoId = p.Id,
 						  Nombre = p.Nombre,
-						  TotalVendido = pv.TotalVendido
+						  TotalVendido = pv.TotalVendido,
+						  p.PresentacionNombre,
+						  p.LaboratorioNombre
 					  })
 				.OrderByDescending(p => p.TotalVendido) // Ordenar nuevamente por si acaso
 				.ToList();
 
 			return Ok(resultado);
 		}
-
 		[HttpGet]
-        [Route("ListarDetalleVentasActivos")]
-        public async Task<ActionResult<IEnumerable<Detalle_Venta>>> ListarDetallesVentasActivos()
-        {
-            // Filtrar con estado "Activo"
-            var detalleVentasActivos = await _context.Detalle_Ventas
-                .Where(e => e.Estado == "Activo")
-                .ToListAsync();
+		[Route("ListarDetalleVentasActivos")]
+		public async Task<ActionResult<IEnumerable<Detalle_Venta>>> ListarDetallesVentasActivos()
+		{
+			// Filtrar con estado "Activo"
+			var detalleVentasActivos = await _context.Detalle_Ventas
+				.Where(e => e.Estado == "Activo")
+				.ToListAsync();
 
-            // Retornar la lista de activos
-            return detalleVentasActivos;
-        }
+			// Retornar la lista de activos
+			return detalleVentasActivos;
+		}
 
-        // GET: api/Detalle_Ventas
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<Detalle_Venta>>> GetDetalle_Ventas()
-        {
-            return await _context.Detalle_Ventas.ToListAsync();
-        }
+		// GET: api/Detalle_Ventas
+		[HttpGet]
+		public async Task<ActionResult<IEnumerable<Detalle_Venta>>> GetDetalle_Ventas()
+		{
+			return await _context.Detalle_Ventas.ToListAsync();
+		}
 
-        // GET: api/Detalle_Ventas/5
-        [HttpGet("{id}")]
-        public async Task<ActionResult<Detalle_Venta>> GetDetalle_Venta(int id)
-        {
-            var detalle_Venta = await _context.Detalle_Ventas.FindAsync(id);
+		// GET: api/Detalle_Ventas/5
+		[HttpGet("{id}")]
+		public async Task<ActionResult<Detalle_Venta>> GetDetalle_Venta(int id)
+		{
+			var detalle_Venta = await _context.Detalle_Ventas.FindAsync(id);
 
-            if (detalle_Venta == null)
-            {
-                return NotFound();
-            }
+			if (detalle_Venta == null)
+			{
+				return NotFound();
+			}
 
-            return detalle_Venta;
-        }
+			return detalle_Venta;
+		}
 
-		
+
 
 		// PUT: api/Detalle_Ventas/5
 		// To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
 		[HttpPut]
-        [Route("Actualizar")]
-        public async Task<IActionResult> ActualizarDetalleVenta(int id, int cantidad, int descuento, int precio, int total)
-        {
-            // Buscar por su ID
-            var detalleVentaActual = await _context.Detalle_Ventas.FindAsync(id);
+		[Route("Actualizar")]
+		public async Task<IActionResult> ActualizarDetalleVenta(int id, int cantidad, int descuento, int precio, int total)
+		{
+			// Buscar por su ID
+			var detalleVentaActual = await _context.Detalle_Ventas.FindAsync(id);
 
-            if (detalleVentaActual == null)
-            {
-                return NotFound("El Detalle Venta no fue encontrado.");
-            }
+			if (detalleVentaActual == null)
+			{
+				return NotFound("El Detalle Venta no fue encontrado.");
+			}
 
-            // Actualiza los campos con los nuevos valores
-            detalleVentaActual.Cantidad = cantidad;
-            detalleVentaActual.Descuento = descuento;
-            detalleVentaActual.Precio = precio;
-            detalleVentaActual.Total = total;
+			// Actualiza los campos con los nuevos valores
+			detalleVentaActual.Cantidad = cantidad;
+			detalleVentaActual.Descuento = descuento;
+			detalleVentaActual.Precio = precio;
+			detalleVentaActual.Total = total;
 
-            // Guarda los cambios en la base de datos
-            await _context.SaveChangesAsync();
+			// Guarda los cambios en la base de datos
+			await _context.SaveChangesAsync();
 
-            return Ok(detalleVentaActual);
-        }
+			return Ok(detalleVentaActual);
+		}
 
 		// POST: api/Permisos
 		// To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
@@ -176,22 +191,22 @@ namespace Farmacia.Controllers
 
 		// DELETE: api/Permisos/5
 		[HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteDetalleVenta(int id)
-        {
-            var detalleVenta = await _context.Detalle_Ventas.FindAsync(id);
+		public async Task<IActionResult> DeleteDetalleVenta(int id)
+		{
+			var detalleVenta = await _context.Detalle_Ventas.FindAsync(id);
 
-            if (detalleVenta == null)
-            {
-                return NotFound("El Detalle Venta no fue encontrado.");
-            }
+			if (detalleVenta == null)
+			{
+				return NotFound("El Detalle Venta no fue encontrado.");
+			}
 
-            // Cambiar el estado a "Inactivo" en lugar de eliminar
-            detalleVenta.Estado = "Inactivo";
+			// Cambiar el estado a "Inactivo" en lugar de eliminar
+			detalleVenta.Estado = "Inactivo";
 
-            // Guardar los cambios en la base de datos
-            await _context.SaveChangesAsync();
+			// Guardar los cambios en la base de datos
+			await _context.SaveChangesAsync();
 
-            return Ok(new { message = "El Detalle Venta ha sido desactivado." });
-        }
-    }
+			return Ok(new { message = "El Detalle Venta ha sido desactivado." });
+		}
+	}
 }
