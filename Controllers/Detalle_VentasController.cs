@@ -22,48 +22,64 @@ namespace Farmacia.Controllers
         }
 
 		[HttpGet]
-		[Route("ProductosMasVendidos")]
-		public async Task<IActionResult> ObtenerProductosMasVendidos()
+[Route("ProductosMasVendidos")]
+public async Task<IActionResult> ObtenerProductosMasVendidos()
+{
+	// Agrupar las ventas por idproducto y sumar las cantidades vendidas
+	var productosVendidos = await _context.Detalle_Ventas
+		.Where(dv => dv.Estado == "Activo")
+		.GroupBy(dv => dv.idproducto)
+		.Select(g => new
 		{
-			// Agrupar las ventas por idproducto y sumar las cantidades vendidas
-			var productosVendidos = await _context.Detalle_Ventas
-				.Where(dv=>dv.Estado=="Activo")
-				.GroupBy(dv => dv.idproducto)
-				.Select(g => new
-				{
-					ProductoId = g.Key,
-					TotalVendido = g.Sum(dv => dv.Cantidad)
-				})
-				.OrderByDescending(p => p.TotalVendido) // Ordenar de mayor a menor
-				.ToListAsync();
+			ProductoId = g.Key,
+			TotalVendido = g.Sum(dv => dv.Cantidad)
+		})
+		.OrderByDescending(p => p.TotalVendido) // Ordenar de mayor a menor
+		.ToListAsync();
 
-			if (productosVendidos == null || !productosVendidos.Any())
+	if (productosVendidos == null || !productosVendidos.Any())
+	{
+		return NotFound("No se encontraron ventas.");
+	}
+
+	// Obtener la información completa de los productos con presentación y laboratorio
+	var productosIds = productosVendidos.Select(p => p.ProductoId).ToList();
+	var productos = await _context.Productos
+		.Where(p => productosIds.Contains(p.Id) && p.Estado == "Activo")
+		.Join(_context.Presentaciones,
+			producto => producto.idpresentacion,
+			presentacion => presentacion.Id,
+			(producto, presentacion) => new
 			{
-				return NotFound("No se encontraron ventas.");
-			}
+				producto.Id,
+				producto.Nombre,
+				producto.idlaboratorio, // Ajusta según el nombre de tu campo
+				PresentacionNombre = presentacion.Nombre,
+				LaboratorioNombre = _context.Laboratorios
+					.Where(l => l.Id == producto.idlaboratorio) // Ajusta según el nombre de tu campo
+					.Select(l => l.LaboratorioNombre)
+					.FirstOrDefault() ?? "Sin laboratorio"
+			})
+		.ToListAsync();
 
-			// Obtener la información completa de los productos
-			var productosIds = productosVendidos.Select(p => p.ProductoId).ToList();
-			var productos = await _context.Productos
-				.Where(p => productosIds.Contains(p.Id)&& p.Estado == "Activo")
-				.ToListAsync();
+	// Combinar la información de los productos con las cantidades vendidas
+	var resultado = productosVendidos
+		.Join(productos,
+			  pv => pv.ProductoId,
+			  p => p.Id,
+			  (pv, p) => new
+			  {
+				  ProductoId = p.Id,
+				  Nombre = p.Nombre,
+				  TotalVendido = pv.TotalVendido,
+				  p.PresentacionNombre,
+				  p.LaboratorioNombre
+			  })
+		.OrderByDescending(p => p.TotalVendido) // Ordenar nuevamente por si acaso
+		.ToList();
 
-			// Combinar la información de los productos con las cantidades vendidas
-			var resultado = productosVendidos
-				.Join(productos,
-					  pv => pv.ProductoId,
-					  p => p.Id,
-					  (pv, p) => new
-					  {
-						  ProductoId = p.Id,
-						  Nombre = p.Nombre,
-						  TotalVendido = pv.TotalVendido
-					  })
-				.OrderByDescending(p => p.TotalVendido) // Ordenar nuevamente por si acaso
-				.ToList();
-
-			return Ok(resultado);
-		}
+	return Ok(resultado);
+}
 
 		[HttpGet]
         [Route("ListarDetalleVentasActivos")]
