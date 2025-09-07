@@ -33,6 +33,7 @@ namespace Farmacia.Models
         public int idtipo { get;set; }
         [JsonIgnore]
         public Tipo Tipo { get; set; }
+        	public int Precio_compra { get; set; }
 
     }
 }
