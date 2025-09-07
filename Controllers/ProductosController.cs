@@ -208,7 +208,8 @@ namespace Farmacia.Controllers
 	 string vencimiento,
 	 int idpresentacion, // Añadido
 	 int idlaboratorio,  // Añadido
-	 int idtipo)        // Añadido
+	 int idtipo,
+   int precio_compra)        // Añadido
 		{
 			var productoActual = await _context.Productos.FindAsync(id);
 
@@ -229,6 +230,7 @@ namespace Farmacia.Controllers
 			productoActual.idpresentacion = idpresentacion;
 			productoActual.idlaboratorio = idlaboratorio;
 			productoActual.idtipo = idtipo;
+   productoActual.Precio_compra = precio_compra;
 
 			await _context.SaveChangesAsync();
 
@@ -254,7 +256,8 @@ namespace Farmacia.Controllers
 				concentracion = concentracion,
 				casilla = casilla,
 				idpresentacion = idpresentacion,
-				Estado = "Activo"
+				Estado = "Activo",
+	Precio_compra = precio_compraa
 			};
 			await _context.Productos.AddAsync(producto);
 			await _context.SaveChangesAsync();
