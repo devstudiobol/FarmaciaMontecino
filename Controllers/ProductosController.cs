@@ -241,7 +241,7 @@ namespace Farmacia.Controllers
 		// To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
 		[HttpPost]
 		[Route("Crear")]
-		public async Task<IActionResult> CrearProducto(string codigo, string nombre, string descripcion, int precio, int stock, string vencimiento, int idtipo, int idlaboratorio, int concentracion, string casilla, int idpresentacion)
+		public async Task<IActionResult> CrearProducto(string codigo, string nombre, string descripcion, int precio, int stock, string vencimiento, int idtipo, int idlaboratorio, int concentracion, string casilla, int idpresentacion,int precio_compra)
 		{
 			Producto producto = new Producto()
 			{
@@ -257,7 +257,7 @@ namespace Farmacia.Controllers
 				casilla = casilla,
 				idpresentacion = idpresentacion,
 				Estado = "Activo",
-	Precio_compra = precio_compraa
+	Precio_compra = precio_compra
 			};
 			await _context.Productos.AddAsync(producto);
 			await _context.SaveChangesAsync();
