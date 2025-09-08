@@ -230,7 +230,7 @@ namespace Farmacia.Controllers
 			productoActual.idpresentacion = idpresentacion;
 			productoActual.idlaboratorio = idlaboratorio;
 			productoActual.idtipo = idtipo;
-   productoActual.Precio_compra = precio_compra;
+   productoActual.precio_compra = precio_compra;
 
 			await _context.SaveChangesAsync();
 
@@ -257,7 +257,7 @@ namespace Farmacia.Controllers
 				casilla = casilla,
 				idpresentacion = idpresentacion,
 				Estado = "Activo",
-	Precio_compra = precio_compra
+	precio_compra = precio_compra
 			};
 			await _context.Productos.AddAsync(producto);
 			await _context.SaveChangesAsync();
