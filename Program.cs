@@ -6,12 +6,26 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container
+// ----------------------------
+// CONFIG PORT PARA RENDER
+// ----------------------------
+var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
+
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.ListenAnyIP(int.Parse(port));
+});
+
+// ----------------------------
+// SERVICES
+// ----------------------------
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// CORS Configuration
+// ----------------------------
+// CORS
+// ----------------------------
 builder.Services.AddCors(options =>
 {
 	options.AddPolicy("AllowAll", policyBuilder =>
@@ -24,32 +38,26 @@ builder.Services.AddCors(options =>
 });
 
 // ----------------------------
-// DATABASE CONFIGURATION
+// DATABASE
 // ----------------------------
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
 builder.Services.AddDbContext<AppDbContext>(options =>
-	options.UseNpgsql(connectionString, npgsqlOptions =>
-	{
-		// npgsqlOptions.EnableRetryOnFailure(maxRetryCount:5, maxRetryDelay: TimeSpan.FromSeconds(30));
-	}));
+	options.UseNpgsql(connectionString));
 
 // ----------------------------
-// JWT Authentication
+// JWT
 // ----------------------------
 var jwtKey = builder.Configuration["Jwt:Key"];
 
 if (string.IsNullOrEmpty(jwtKey))
 {
-	Console.WriteLine("?? WARNING: Jwt:Key not found in configuration. Using default dev key.");
-
-	jwtKey = "default_dev_key_change_me"; // clave fallback
+	Console.WriteLine("⚠ WARNING: Jwt:Key not found in configuration. Using default dev key.");
+	jwtKey = "default_dev_key_change_me";
 }
 else
 {
-
 	Console.WriteLine("✅ Jwt:Key loaded correctly from configuration.");
-
 }
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -64,9 +72,12 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 		};
 	});
 
+// ----------------------------
+// APP
+// ----------------------------
 var app = builder.Build();
 
-// Apply migrations automatically
+// Apply migrations on startup
 try
 {
 	using (var scope = app.Services.CreateScope())
@@ -83,7 +94,9 @@ catch (Exception ex)
 	Console.WriteLine($"Error applying migrations: {ex.Message}");
 }
 
-// Configure the HTTP request pipeline
+// ----------------------------
+// PIPELINE
+// ----------------------------
 if (app.Environment.IsDevelopment())
 {
 	app.UseSwagger();
@@ -94,6 +107,10 @@ app.UseHttpsRedirection();
 app.UseCors("AllowAll");
 app.UseAuthentication();
 app.UseAuthorization();
+
 app.MapControllers();
+
+// Endpoint raíz para probar en Render
+app.MapGet("/", () => "API OK en Render 🚀");
 
 app.Run();
