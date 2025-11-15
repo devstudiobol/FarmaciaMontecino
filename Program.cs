@@ -30,7 +30,7 @@ builder.Services.AddCors(options =>
 {
 	options.AddPolicy("AllowAll", policyBuilder =>
 	{
-		policyBuilder.WithOrigins("http://farmacia.local:3000")
+		policyBuilder.WithOrigins("https://farmaciamontecino.netlify.app")
 				   .AllowAnyHeader()
 				   .AllowAnyMethod()
 				   .AllowCredentials();
