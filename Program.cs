@@ -28,13 +28,14 @@ builder.Services.AddSwaggerGen();
 // ----------------------------
 builder.Services.AddCors(options =>
 {
-	options.AddPolicy("AllowAll", policyBuilder =>
-	{
-		policyBuilder.WithOrigins("https://farmaciamontecino.netlify.app")
-				   .AllowAnyHeader()
-				   .AllowAnyMethod()
-				   .AllowCredentials();
-	});
+    options.AddPolicy("AllowAll", policyBuilder =>
+    {
+        policyBuilder
+            .WithOrigins("https://farmaciamontecino.netlify.app") // tu frontend
+            .AllowAnyHeader()
+            .AllowAnyMethod();
+            // ❌ NO credentials porque no usas cookies
+    });
 });
 
 // ----------------------------
@@ -43,7 +44,7 @@ builder.Services.AddCors(options =>
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
 builder.Services.AddDbContext<AppDbContext>(options =>
-	options.UseNpgsql(connectionString));
+    options.UseNpgsql(connectionString));
 
 // ----------------------------
 // JWT
@@ -52,25 +53,25 @@ var jwtKey = builder.Configuration["Jwt:Key"];
 
 if (string.IsNullOrEmpty(jwtKey))
 {
-	Console.WriteLine("⚠ WARNING: Jwt:Key not found in configuration. Using default dev key.");
-	jwtKey = "default_dev_key_change_me";
+    Console.WriteLine("⚠ WARNING: Jwt:Key not found in configuration. Using default dev key.");
+    jwtKey = "default_dev_key_change_me";
 }
 else
 {
-	Console.WriteLine("✅ Jwt:Key loaded correctly from configuration.");
+    Console.WriteLine("✅ Jwt:Key loaded correctly from configuration.");
 }
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-	.AddJwtBearer(options =>
-	{
-		options.TokenValidationParameters = new TokenValidationParameters
-		{
-			ValidateIssuerSigningKey = true,
-			IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
-			ValidateIssuer = false,
-			ValidateAudience = false
-		};
-	});
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
+            ValidateIssuer = false,
+            ValidateAudience = false
+        };
+    });
 
 // ----------------------------
 // APP
@@ -80,18 +81,18 @@ var app = builder.Build();
 // Apply migrations on startup
 try
 {
-	using (var scope = app.Services.CreateScope())
-	{
-		var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-		if (dbContext.Database.IsRelational())
-		{
-			dbContext.Database.Migrate();
-		}
-	}
+    using (var scope = app.Services.CreateScope())
+    {
+        var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        if (dbContext.Database.IsRelational())
+        {
+            dbContext.Database.Migrate();
+        }
+    }
 }
 catch (Exception ex)
 {
-	Console.WriteLine($"Error applying migrations: {ex.Message}");
+    Console.WriteLine($"Error applying migrations: {ex.Message}");
 }
 
 // ----------------------------
@@ -99,18 +100,18 @@ catch (Exception ex)
 // ----------------------------
 if (app.Environment.IsDevelopment())
 {
-	app.UseSwagger();
-	app.UseSwaggerUI();
+    app.UseSwagger();
+    app.UseSwaggerUI();
 }
 
 app.UseHttpsRedirection();
 app.UseCors("AllowAll");
+
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
 
-// Endpoint raíz para probar en Render
 app.MapGet("/", () => "API OK en Render 🚀");
 
 app.Run();
